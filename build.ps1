@@ -31,7 +31,7 @@ $langs = Get-ChildItem (Join-Path $root 'src\lang') -Filter *.txt | ForEach-Obje
 if ($LASTEXITCODE -ne 0) { throw 'BCNMiner build failed' }
 
 # 3. side files
-foreach ($f in 'get-engine.ps1', 'README.md', 'README.uk.md', 'LICENSE', 'COPYING') { Copy-Item (Join-Path $root $f) $dist -Force }
+foreach ($f in @('get-engine.ps1', 'LICENSE', 'COPYING') + (Get-ChildItem $root -Filter 'README*.md' | ForEach-Object Name)) { Copy-Item (Join-Path $root $f) $dist -Force }
 New-Item -ItemType Directory -Force (Join-Path $dist 'engine') | Out-Null
 Write-Host "OK: $dist\BCNMiner.exe"
 
@@ -42,7 +42,7 @@ if ($Release) {
     $stage = Join-Path $obj 'release\BCNMiner'
     if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
     New-Item -ItemType Directory -Force $stage, "$stage\engine", "$stage\data" | Out-Null
-    foreach ($f in 'BCNMiner.exe', 'get-engine.ps1', 'README.md', 'README.uk.md', 'LICENSE', 'COPYING') { Copy-Item (Join-Path $dist $f) $stage }
+    foreach ($f in @('BCNMiner.exe', 'get-engine.ps1', 'LICENSE', 'COPYING') + (Get-ChildItem $dist -Filter 'README*.md' | ForEach-Object Name)) { Copy-Item (Join-Path $dist $f) $stage }
     Set-Content "$stage\engine\README.txt" -Encoding UTF8 -Value @(
         'Run get-engine.ps1 from the program folder to download XMRig (and xmrig-cuda for NVIDIA) into this folder.',
         'Запустіть get-engine.ps1 з папки програми, щоб завантажити сюди XMRig (і xmrig-cuda для NVIDIA).')

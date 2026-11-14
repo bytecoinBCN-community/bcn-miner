@@ -1,6 +1,6 @@
 # BCN Miner for Windows
 
-**English** · [Українська](README.uk.md)
+**English** · [Українська](README.uk.md) · [Español](README.es.md) · [Português](README.pt.md) · [Türkçe](README.tr.md) · [Bahasa Indonesia](README.id.md) · [Tiếng Việt](README.vi.md) · [中文](README.zh.md)
 
 A desktop miner for Bytecoin (BCN) that mines on the CPU and on NVIDIA, AMD and Intel Arc graphics cards. It has dark and light themes and an interface in eight languages.
 

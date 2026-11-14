@@ -1,6 +1,6 @@
 # BCN Miner для Windows
 
-[English](README.md) · **Українська**
+[English](README.md) · **Українська** · [Español](README.es.md) · [Português](README.pt.md) · [Türkçe](README.tr.md) · [Bahasa Indonesia](README.id.md) · [Tiếng Việt](README.vi.md) · [中文](README.zh.md)
 
 Графічний майнер Bytecoin (BCN). Він майнить на процесорі та відеокартах NVIDIA, AMD й Intel Arc. Дизайн узято з канвасу «Bytecoin Desktop Suite»: темна і світла теми, бокове меню 232 px, коралова кнопка головної дії.
 
