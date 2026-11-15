@@ -11,12 +11,7 @@ Trình đào Bytecoin (BCN) trên máy tính, đào bằng CPU và card đồ h�
 ## Tải về và chạy
 
 1. Tải `BCNMiner-<phiên bản>-win-portable.zip` từ [bytecoin.community](https://bytecoin.community/#downloads) và giải nén ở bất kỳ đâu, kể cả USB.
-2. Cài bộ máy đào. Trong thư mục vừa giải nén, chạy:
-   ```
-   powershell -ExecutionPolicy Bypass -File .\get-engine.ps1
-   ```
-   Tập lệnh tải bản phát hành chính thức của [XMRig](https://github.com/xmrig/xmrig) từ GitHub và kiểm tra SHA-256. Nếu máy có card NVIDIA, tập lệnh thêm cả plugin xmrig-cuda.
-3. Chạy `BCNMiner.exe`.
+2. Chạy `BCNMiner.exe` và nhấn **Tải bộ máy** (ở màn hình Thiết bị hoặc trên thông báo ở màn hình Đào). Trình đào tải bản phát hành chính thức của [XMRig](https://github.com/xmrig/xmrig) từ GitHub, kiểm tra SHA-256 và với card NVIDIA sẽ thêm plugin xmrig-cuda phù hợp với trình điều khiển của bạn. Từ dòng lệnh, việc tương tự được làm bằng `powershell -ExecutionPolicy Bypass -File .\get-engine.ps1`.
 
 Không cần cài gì thêm: .NET Framework 4.8 có sẵn trong Windows 10 và 11.
 
@@ -42,7 +37,7 @@ Trình đào tích hợp trong bytecoin-gui chỉ dùng CPU. Danh sách pool có
 
 | Hãng | Backend | Thế hệ | Ghi chú |
 | --- | --- | --- | --- |
-| NVIDIA | CUDA (plugin `xmrig-cuda.dll`) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), RTX chuyên nghiệp và GPU trung tâm dữ liệu | RTX 50 cần plugin được biên dịch với CUDA 12.8+; `get-engine.ps1` lấy bản mới nhất (CUDA 12.9 vào thời điểm viết). Nhiệt độ, công suất và quạt lấy từ NVML. |
+| NVIDIA | CUDA (plugin `xmrig-cuda.dll`) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), RTX chuyên nghiệp và GPU trung tâm dữ liệu | RTX 50 cần plugin được biên dịch với CUDA 12.8+; trình đào chọn bản mới nhất mà trình điều khiển của bạn chạy được (CUDA 12.9 cần trình điều khiển 527.41+, trình điều khiển cũ nhận 11.8 hoặc 10.2). Nhiệt độ, công suất và quạt lấy từ NVML. |
 | AMD | OpenCL | GCN 4 (RX 400/500), Vega, RDNA 1–4 (RX 5000–9000), Radeon Pro, Instinct | Nhiệt độ và công suất lấy từ ADL. |
 | Intel | OpenCL | Arc A (Alchemist), Arc B (Battlemage) | Thử nghiệm. Chọn Thiết bị → Nền tảng OpenCL → Intel. |
 | Đồ họa tích hợp | — | Intel UHD/Iris, Radeon trong APU | Không dùng: dùng chung bộ nhớ và tản nhiệt với CPU. |

@@ -30,7 +30,8 @@ namespace BcnMiner
         public const string IcCopy = "M9 9h10v10H9zM5 15V5h10";
         public const string IcRefresh = "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7";
         public const string IcGlobe = "M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3c-2.5 2.6-3.8 5.6-3.8 9s1.3 6.4 3.8 9";
-        public const string IcCode = "M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16";
+        public const string IcDownload = "M12 4v11M7 10l5 5 5-5M5 20h14";
+        public const string IcCode ="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16";
 
         public static void OpenUrl(string url)
         {

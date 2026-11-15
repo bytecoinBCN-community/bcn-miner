@@ -11,12 +11,7 @@
 ## Завантаження і запуск
 
 1. Завантажте `BCNMiner-<версія>-win-portable.zip` з [bytecoin.community](https://bytecoin.community/#downloads) і розпакуйте куди завгодно, хоч на флешку.
-2. Встановіть рушій. У розпакованій папці запустіть:
-   ```
-   powershell -ExecutionPolicy Bypass -File .\get-engine.ps1
-   ```
-   Скрипт завантажує офіційний реліз XMRig з GitHub і звіряє SHA-256. Якщо в системі є NVIDIA, він додає ще й плагін xmrig-cuda.
-3. Запустіть `BCNMiner.exe`.
+2. Запустіть `BCNMiner.exe` і натисніть **«Завантажити рушій»** (екран «Пристрої» або банер на екрані «Майнінг»). Майнер завантажить офіційний реліз [XMRig](https://github.com/xmrig/xmrig) з GitHub, звірить SHA-256, а для NVIDIA додасть плагін xmrig-cuda, зібраний під ваш драйвер. Те саме з командного рядка: `powershell -ExecutionPolicy Bypass -File .\get-engine.ps1`.
 
 Нічого встановлювати не треба: .NET Framework 4.8 уже є в Windows 10 і 11.
 
@@ -42,7 +37,7 @@ Windows Defender часто позначає майнери як «потенц�
 
 | Виробник | Бекенд | Покоління | Примітки |
 | --- | --- | --- | --- |
-| NVIDIA | CUDA (плагін `xmrig-cuda.dll`) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), професійні RTX і дата-центрові | RTX 50 вимагає збірки плагіна з CUDA 12.8+. `get-engine.ps1` бере найновішу. Температура, потужність і вентилятор — через NVML. |
+| NVIDIA | CUDA (плагін `xmrig-cuda.dll`) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), професійні RTX і дата-центрові | RTX 50 вимагає збірки плагіна з CUDA 12.8+. Майнер бере найновішу збірку, яку підтримує ваш драйвер (CUDA 12.9 потребує драйвера 527.41+, старіші драйвери отримують 11.8 або 10.2). Температура, потужність і вентилятор — через NVML. |
 | AMD | OpenCL | GCN 4 (RX 400/500), Vega, RDNA 1–4 (RX 5000–9000), Radeon Pro, Instinct | Температура і потужність — через ADL. |
 | Intel | OpenCL | Arc A (Alchemist), Arc B (Battlemage) | Експериментально. Вибір платформи: «Пристрої → Платформа OpenCL → Intel». |
 | Вбудована графіка | — | Intel UHD/Iris, Radeon у APU | Не використовується: вона ділить пам'ять і охолодження з CPU. |

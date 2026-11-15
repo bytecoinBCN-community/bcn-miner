@@ -11,12 +11,7 @@ Bytecoin（BCN）桌面挖矿程序，可使用 CPU 以及 NVIDIA、AMD 和 Inte
 ## 下载与运行
 
 1. 从 [bytecoin.community](https://bytecoin.community/#downloads) 下载 `BCNMiner-<版本>-win-portable.zip`，解压到任意位置，U 盘也可以。
-2. 安装挖矿引擎。在解压后的文件夹中运行：
-   ```
-   powershell -ExecutionPolicy Bypass -File .\get-engine.ps1
-   ```
-   脚本会从 GitHub 下载 [XMRig](https://github.com/xmrig/xmrig) 官方版本并校验 SHA-256。如果电脑装有 NVIDIA 显卡，还会添加 xmrig-cuda 插件。
-3. 运行 `BCNMiner.exe`。
+2. 运行 `BCNMiner.exe`，点击 **下载引擎**（在“设备”页面，或“挖矿”页面的提示条中）。矿工程序会从 GitHub 下载 [XMRig](https://github.com/xmrig/xmrig) 官方版本并校验 SHA-256；对于 NVIDIA 显卡，还会添加与您的驱动匹配的 xmrig-cuda 插件。在命令行中也可以用 `powershell -ExecutionPolicy Bypass -File .\get-engine.ps1` 完成同样的操作。
 
 无需安装任何组件：Windows 10 和 11 自带 .NET Framework 4.8。
 
@@ -42,7 +37,7 @@ bytecoin-gui 内置的矿工只支持 CPU。带备用矿池的矿池列表和“
 
 | 厂商 | 后端 | 代际 | 说明 |
 | --- | --- | --- | --- |
-| NVIDIA | CUDA（`xmrig-cuda.dll` 插件） | Pascal（GTX 10）、Turing（GTX 16、RTX 20）、Ampere（RTX 30）、Ada（RTX 40）、Blackwell（RTX 50）、专业 RTX 和数据中心 GPU | RTX 50 需要用 CUDA 12.8+ 构建的插件；`get-engine.ps1` 会选择最新的版本（撰写时为 CUDA 12.9）。温度、功耗和风扇数据来自 NVML。 |
+| NVIDIA | CUDA（`xmrig-cuda.dll` 插件） | Pascal（GTX 10）、Turing（GTX 16、RTX 20）、Ampere（RTX 30）、Ada（RTX 40）、Blackwell（RTX 50）、专业 RTX 和数据中心 GPU | RTX 50 需要用 CUDA 12.8+ 构建的插件；矿工程序会选择您的驱动能运行的最新版本（CUDA 12.9 需要 527.41+ 驱动，较旧的驱动使用 11.8 或 10.2）。温度、功耗和风扇数据来自 NVML。 |
 | AMD | OpenCL | GCN 4（RX 400/500）、Vega、RDNA 1–4（RX 5000–9000）、Radeon Pro、Instinct | 温度和功耗数据来自 ADL。 |
 | Intel | OpenCL | Arc A（Alchemist）、Arc B（Battlemage） | 实验性支持。请选择“设备 → OpenCL 平台 → Intel”。 |
 | 集成显卡 | — | Intel UHD/Iris、APU 中的 Radeon | 不使用：它与 CPU 共享内存和散热。 |

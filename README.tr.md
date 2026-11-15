@@ -11,12 +11,7 @@ Bytecoin topluluğunun bağımsız bir projesidir; Bytecoin'in kurucularıyla ve
 ## İndirme ve çalıştırma
 
 1. [bytecoin.community](https://bytecoin.community/#downloads) sayfasından `BCNMiner-<sürüm>-win-portable.zip` dosyasını indirin ve istediğiniz yere, bir USB belleğe bile açın.
-2. Madencilik motorunu kurun. Açtığınız klasörde şunu çalıştırın:
-   ```
-   powershell -ExecutionPolicy Bypass -File .\get-engine.ps1
-   ```
-   Betik, resmi [XMRig](https://github.com/xmrig/xmrig) sürümünü GitHub'dan indirir ve SHA-256 değerini doğrular. Bilgisayarda NVIDIA kart varsa xmrig-cuda eklentisini de ekler.
-3. `BCNMiner.exe` dosyasını çalıştırın.
+2. `BCNMiner.exe` dosyasını çalıştırın ve **Motoru indir** düğmesine basın (Cihazlar ekranında ya da Madencilik ekranındaki uyarıda). Madenci resmi [XMRig](https://github.com/xmrig/xmrig) sürümünü GitHub'dan indirir, SHA-256'yı doğrular ve NVIDIA kartlar için sürücünüze uygun xmrig-cuda eklentisini ekler. Komut satırından aynısı `powershell -ExecutionPolicy Bypass -File .\get-engine.ps1` ile yapılır.
 
 Hiçbir şey kurmanız gerekmez: .NET Framework 4.8, Windows 10 ve 11 ile birlikte gelir.
 
@@ -42,7 +37,7 @@ bytecoin-gui'deki yerleşik madenci yalnızca CPU kullanır. Yedek havuzlu havuz
 
 | Üretici | Arka uç | Nesiller | Notlar |
 | --- | --- | --- | --- |
-| NVIDIA | CUDA (`xmrig-cuda.dll` eklentisi) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), profesyonel RTX ve veri merkezi GPU'ları | RTX 50, CUDA 12.8+ ile derlenmiş eklenti ister; `get-engine.ps1` en yeni sürümü alır (yazıldığı sırada CUDA 12.9). Sıcaklık, güç ve fan NVML'den gelir. |
+| NVIDIA | CUDA (`xmrig-cuda.dll` eklentisi) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), profesyonel RTX ve veri merkezi GPU'ları | RTX 50, CUDA 12.8+ ile derlenmiş eklenti ister; madenci, sürücünüzün çalıştırabildiği en yeni derlemeyi seçer (CUDA 12.9 için 527.41+ sürücü gerekir, eski sürücüler 11.8 veya 10.2 alır). Sıcaklık, güç ve fan NVML'den gelir. |
 | AMD | OpenCL | GCN 4 (RX 400/500), Vega, RDNA 1–4 (RX 5000–9000), Radeon Pro, Instinct | Sıcaklık ve güç ADL'den gelir. |
 | Intel | OpenCL | Arc A (Alchemist), Arc B (Battlemage) | Deneysel. Cihazlar → OpenCL platformu → Intel'i seçin. |
 | Tümleşik grafik | — | Intel UHD/Iris, APU'lardaki Radeon | Kullanılmaz: belleği ve soğutmayı CPU ile paylaşır. |

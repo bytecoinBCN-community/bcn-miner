@@ -10,7 +10,7 @@ if (-not (Test-Path $csc)) { throw ".NET Framework 4.x compiler not found: $csc"
 
 $refs = @('System.dll', 'System.Core.dll', 'System.Xaml.dll', 'System.Xml.dll', 'WPF\WindowsBase.dll', 'WPF\PresentationCore.dll',
           'WPF\PresentationFramework.dll', 'System.Management.dll', 'System.Web.Extensions.dll',
-          'System.Windows.Forms.dll', 'System.Drawing.dll') | ForEach-Object { '/r:' + (Join-Path $fw $_) }
+          'System.Windows.Forms.dll', 'System.Drawing.dll', 'System.IO.Compression.dll', 'System.IO.Compression.FileSystem.dll') | ForEach-Object { '/r:' + (Join-Path $fw $_) }
 
 $obj = Join-Path $root 'obj'
 $dist = if ($OutDir) { $OutDir } else { Join-Path $root 'dist' }
@@ -45,8 +45,8 @@ if ($Release) {
     New-Item -ItemType Directory -Force $stage, "$stage\engine", "$stage\data" | Out-Null
     foreach ($f in @('BCNMiner.exe', 'get-engine.ps1', 'LICENSE', 'COPYING') + (Get-ChildItem $dist -Filter 'README*.md' | ForEach-Object Name)) { Copy-Item (Join-Path $dist $f) $stage }
     Set-Content "$stage\engine\README.txt" -Encoding UTF8 -Value @(
-        'Run get-engine.ps1 from the program folder to download XMRig (and xmrig-cuda for NVIDIA) into this folder.',
-        'Запустіть get-engine.ps1 з папки програми, щоб завантажити сюди XMRig (і xmrig-cuda для NVIDIA).')
+        'Press "Download engine" in BCN Miner (Devices screen) or run get-engine.ps1 to put XMRig (and xmrig-cuda for NVIDIA) into this folder.',
+        'Натисніть «Завантажити рушій» у BCN Miner (екран «Пристрої») або запустіть get-engine.ps1, щоб завантажити сюди XMRig (і xmrig-cuda для NVIDIA).')
     Set-Content "$stage\data\README.txt" -Encoding UTF8 -Value @(
         'Portable mode: while this folder exists, BCN Miner keeps its settings and logs here. Delete it to use %APPDATA%\BCN Miner.',
         'Портативний режим: поки ця папка існує, BCN Miner зберігає тут налаштування й журнали. Видаліть її, щоб використовувати %APPDATA%\BCN Miner.')

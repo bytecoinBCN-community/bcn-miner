@@ -11,12 +11,7 @@ This is an independent Bytecoin community project, not affiliated with the Bytec
 ## Download and run
 
 1. Download `BCNMiner-<version>-win-portable.zip` from [bytecoin.community](https://bytecoin.community/#downloads) and unpack it anywhere, a USB stick included.
-2. Install the mining engine. In the unpacked folder, run:
-   ```
-   powershell -ExecutionPolicy Bypass -File .\get-engine.ps1
-   ```
-   The script downloads the official [XMRig](https://github.com/xmrig/xmrig) release from GitHub and checks its SHA-256. If the PC has an NVIDIA card, it also adds the xmrig-cuda plugin.
-3. Run `BCNMiner.exe`.
+2. Run `BCNMiner.exe` and press **Download engine** (on the Devices screen, or in the banner on the Mining screen). The miner downloads the official [XMRig](https://github.com/xmrig/xmrig) release from GitHub, checks its SHA-256 and, for NVIDIA cards, adds the xmrig-cuda plugin built for your driver. From the command line the same is done by `powershell -ExecutionPolicy Bypass -File .\get-engine.ps1`.
 
 Nothing has to be installed: .NET Framework 4.8 ships with Windows 10 and 11.
 
@@ -42,7 +37,7 @@ The miner built into bytecoin-gui is CPU-only. The pool list with backup pools a
 
 | Vendor | Backend | Generations | Notes |
 | --- | --- | --- | --- |
-| NVIDIA | CUDA (`xmrig-cuda.dll` plugin) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), professional RTX and data-center GPUs | RTX 50 needs a plugin built with CUDA 12.8+; `get-engine.ps1` takes the newest build (CUDA 12.9 at the time of writing). Temperature, power and fan come from NVML. |
+| NVIDIA | CUDA (`xmrig-cuda.dll` plugin) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), professional RTX and data-center GPUs | RTX 50 needs a plugin built with CUDA 12.8+; the miner picks the newest build your driver can run (CUDA 12.9 needs driver 527.41+, older drivers get 11.8 or 10.2). Temperature, power and fan come from NVML. |
 | AMD | OpenCL | GCN 4 (RX 400/500), Vega, RDNA 1–4 (RX 5000–9000), Radeon Pro, Instinct | Temperature and power come from ADL. |
 | Intel | OpenCL | Arc A (Alchemist), Arc B (Battlemage) | Experimental. Choose Devices → OpenCL platform → Intel. |
 | Integrated graphics | — | Intel UHD/Iris, Radeon in APUs | Not used: it shares memory and cooling with the CPU. |

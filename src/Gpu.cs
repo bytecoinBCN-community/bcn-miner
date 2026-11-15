@@ -64,7 +64,8 @@ namespace BcnMiner
                 else if (Regex.IsMatch(n, @"rtx\s*30\d0|rtx a\d{4}|\ba100\b|\ba10\b|\ba30\b|\ba40\b")) g.Arch = "Ampere";
                 else if (Regex.IsMatch(n, @"rtx\s*20\d0|gtx\s*16\d0|titan rtx|quadro rtx|\bt4\b")) g.Arch = "Turing";
                 else if (Regex.IsMatch(n, @"gtx\s*10\d0|titan x|titan xp|quadro p\d+|\bp\d{3}\b")) g.Arch = "Pascal";
-                else if (Regex.IsMatch(n, @"gtx\s*9\d0|gtx\s*7\d0")) { g.Arch = "Maxwell / Kepler"; g.Note = L.T("g.old_nv"); }
+                else if (Regex.IsMatch(n, @"gtx\s*9\d\d|gtx\s*750|quadro m\d+|\bm\d{2,4}m\b")) { g.Arch = "Maxwell"; g.Note = L.T("g.old_nv"); }
+                else if (Regex.IsMatch(n, @"gtx\s*7\d\d|gtx\s*6\d\d")) { g.Arch = "Kepler"; g.Note = L.T("g.old_nv"); }
                 else g.Arch = "NVIDIA";
                 if (n.Contains("mx") && Regex.IsMatch(n, @"\bmx\s*\d{3}\b")) { g.Note = L.T("g.mx"); }
             }
@@ -147,6 +148,43 @@ namespace BcnMiner
             }
             catch { }
             return r;
+        }
+
+        // NVIDIA driver version from the Windows one: 27.21.14.5167 -> 451.67 (last digit of the 3rd part + the 4th part).
+        public static double NvidiaDriver(string windowsVersion)
+        {
+            try
+            {
+                var p = (windowsVersion ?? "").Split('.');
+                if (p.Length < 4) return 0;
+                var s = p[2].Substring(p[2].Length - 1) + p[3].PadLeft(4, '0');
+                return int.Parse(s) / 100.0;
+            }
+            catch { return 0; }
+        }
+
+        // Lowest NVIDIA driver among the cards (0 = unknown / no NVIDIA): it decides which CUDA build of the plugin can run.
+        public static double MinNvidiaDriver(List<GpuInfo> gpus)
+        {
+            double min = 0;
+            foreach (var g in gpus)
+            {
+                if (g.Vendor != "NVIDIA") continue;
+                double d = NvidiaDriver(g.Driver);
+                if (d > 0 && (min == 0 || d < min)) min = d;
+            }
+            return min;
+        }
+
+        // Minimum Windows driver for a CUDA toolkit (NVIDIA's minor-version compatibility table).
+        public static double DriverForCuda(Version cuda)
+        {
+            if (cuda.Major >= 13) return 580.0;
+            if (cuda.Major == 12) return 527.41;
+            if (cuda.Major == 11) return 452.39;
+            if (cuda.Major == 10 && cuda.Minor >= 2) return 441.22;
+            if (cuda.Major == 10) return 411.31;
+            return 0;
         }
 
         public static string CpuName()

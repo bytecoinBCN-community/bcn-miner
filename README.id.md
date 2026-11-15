@@ -11,12 +11,7 @@ Ini adalah proyek independen komunitas Bytecoin, tidak berafiliasi dengan para p
 ## Unduh dan jalankan
 
 1. Unduh `BCNMiner-<versi>-win-portable.zip` dari [bytecoin.community](https://bytecoin.community/#downloads), lalu ekstrak di mana saja, bahkan di flashdisk.
-2. Pasang mesin penambangan. Di folder hasil ekstrak, jalankan:
-   ```
-   powershell -ExecutionPolicy Bypass -File .\get-engine.ps1
-   ```
-   Skrip mengunduh rilis resmi [XMRig](https://github.com/xmrig/xmrig) dari GitHub dan memeriksa SHA-256-nya. Jika PC memiliki kartu NVIDIA, skrip juga menambahkan plugin xmrig-cuda.
-3. Jalankan `BCNMiner.exe`.
+2. Jalankan `BCNMiner.exe` lalu tekan **Unduh mesin** (di layar Perangkat atau di spanduk layar Penambangan). Penambang mengunduh rilis resmi [XMRig](https://github.com/xmrig/xmrig) dari GitHub, memeriksa SHA-256-nya, dan untuk kartu NVIDIA menambahkan plugin xmrig-cuda yang sesuai dengan driver Anda. Dari baris perintah, hal yang sama dilakukan dengan `powershell -ExecutionPolicy Bypass -File .\get-engine.ps1`.
 
 Tidak ada yang perlu dipasang: .NET Framework 4.8 sudah tersedia di Windows 10 dan 11.
 
@@ -42,7 +37,7 @@ Penambang bawaan bytecoin-gui hanya memakai CPU. Dari sanalah daftar pool dengan
 
 | Vendor | Backend | Generasi | Catatan |
 | --- | --- | --- | --- |
-| NVIDIA | CUDA (plugin `xmrig-cuda.dll`) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), RTX profesional, dan GPU pusat data | RTX 50 memerlukan plugin yang dibangun dengan CUDA 12.8+; `get-engine.ps1` mengambil versi terbaru (CUDA 12.9 saat tulisan ini dibuat). Suhu, daya, dan kipas berasal dari NVML. |
+| NVIDIA | CUDA (plugin `xmrig-cuda.dll`) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), RTX profesional, dan GPU pusat data | RTX 50 memerlukan plugin yang dibangun dengan CUDA 12.8+; penambang memilih build terbaru yang bisa dijalankan driver Anda (CUDA 12.9 butuh driver 527.41+, driver lama mendapat 11.8 atau 10.2). Suhu, daya, dan kipas berasal dari NVML. |
 | AMD | OpenCL | GCN 4 (RX 400/500), Vega, RDNA 1–4 (RX 5000–9000), Radeon Pro, Instinct | Suhu dan daya berasal dari ADL. |
 | Intel | OpenCL | Arc A (Alchemist), Arc B (Battlemage) | Eksperimental. Pilih Perangkat → Platform OpenCL → Intel. |
 | Grafis terintegrasi | — | Intel UHD/Iris, Radeon di APU | Tidak dipakai: berbagi memori dan pendinginan dengan CPU. |

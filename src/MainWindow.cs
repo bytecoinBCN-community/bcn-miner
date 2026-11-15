@@ -610,14 +610,33 @@ namespace BcnMiner
             engineStatus = U.T("", 13, "Muted");
             engineStatus.Margin = new Thickness(0, 8, 0, 0);
             eng.Children.Add(engineStatus);
+
+            // in-app engine download (same sources and SHA-256 check as get-engine.ps1)
+            cbCudaPlugin = U.Switch(L.T("eng.cuda"), L.T("eng.cuda_hint"), Engine.HasNvidia(gpus) || Engine.CudaPlugin, v => { });
+            cbCudaPlugin.Margin = new Thickness(0, 14, 0, 0);
+            cbCudaPlugin.IsEnabled = !EngineInstaller.IsArm64;
+            eng.Children.Add(cbCudaPlugin);
+            dlFill = new Border { CornerRadius = new CornerRadius(3), HorizontalAlignment = HorizontalAlignment.Left, Width = 0 };
+            dlFill.SetResourceReference(Border.BackgroundProperty, "Accent");
+            dlBar = new Border { Height = 6, CornerRadius = new CornerRadius(3), Child = dlFill, Margin = new Thickness(0, 14, 0, 0), Visibility = Visibility.Collapsed };
+            dlBar.SetResourceReference(Border.BackgroundProperty, "Track");
+            eng.Children.Add(dlBar);
+            dlText = U.T("", 12, "Muted");
+            dlText.Margin = new Thickness(0, 8, 0, 0);
+            dlText.Visibility = Visibility.Collapsed;
+            eng.Children.Add(dlText);
+
             var engBtns = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+            dlBtn = U.Btn(L.T("eng.download"), "Small", (a, b) => StartDownload(), U.IcDownload);
+            dlCancel = U.Btn(L.T("eng.cancel"), "Small", (a, b) => { if (installer != null) installer.Cancel(); });
+            dlCancel.Visibility = Visibility.Collapsed;
             var b1 = U.Btn(L.T("d.open_engine"), "Small", (a, b) => OpenFolder(Engine.EngineDir), U.IcFolder);
             var b2 = U.Btn(L.T("d.recheck"), "Small", (a, b) => { gpus = Gpu.Detect(); Engine.ForgetProbe(); UpdateEngineStatus(); RebuildDevices(); UpdateBanner(); }, U.IcRefresh);
-            b1.Margin = new Thickness(0, 6, 10, 0);
-            b2.Margin = new Thickness(0, 6, 10, 0);
-            engBtns.Children.Add(b1);
-            engBtns.Children.Add(b2);
+            foreach (var x in new[] { dlBtn, dlCancel, b1, b2 }) { x.Margin = new Thickness(0, 10, 10, 0); engBtns.Children.Add(x); }
             eng.Children.Add(engBtns);
+            var src = U.T(L.T("eng.source"), 11, "Muted");
+            src.Margin = new Thickness(0, 10, 0, 0);
+            eng.Children.Add(src);
             var engCard = U.Card(eng);
 
             var be = new StackPanel();
@@ -685,6 +704,97 @@ namespace BcnMiner
                 var p = Engine.ResolvePlatform(S, gpus);
                 backendNote.Text = S.OpenClEnabled ? (p == null ? L.T("d.ocl_none") : L.F("d.ocl_platform", p)) : L.T("d.ocl_off");
             }
+            UpdateDlButton();
+        }
+
+        // ---------------------------------------------------------------- engine download
+
+        Button dlBtn, dlCancel;
+        CheckBox cbCudaPlugin;
+        Border dlBar, dlFill;
+        TextBlock dlText;
+        EngineInstaller installer;
+        bool installing;
+
+        void UpdateDlButton()
+        {
+            if (dlBtn == null) return;
+            U.SetBtnText(dlBtn, Engine.Installed ? L.T("eng.update") : L.T("eng.download"), U.IcDownload);
+            dlBtn.Style = U.St(Engine.Installed ? "Small" : "Primary");
+            dlBtn.IsEnabled = !installing && state == St.Stopped;
+            dlBtn.ToolTip = state != St.Stopped ? L.T("eng.stop_first") : null;
+            ToolTipService.SetShowOnDisabled(dlBtn, true);
+            dlCancel.Visibility = installing ? Visibility.Visible : Visibility.Collapsed;
+            if (cbCudaPlugin != null) cbCudaPlugin.IsEnabled = !installing && !EngineInstaller.IsArm64;
+        }
+
+        void SetDl(string text, int pct, string color = "Muted")
+        {
+            if (dlText == null) return;
+            dlText.Text = text;
+            dlText.Visibility = Visibility.Visible;
+            dlText.SetResourceReference(TextBlock.ForegroundProperty, color);
+            if (pct == -2) { dlBar.Visibility = Visibility.Collapsed; return; }
+            dlBar.Visibility = Visibility.Visible;
+            double w = dlBar.ActualWidth > 0 ? dlBar.ActualWidth : 300;
+            dlFill.Opacity = pct < 0 ? 0.35 : 1;
+            dlFill.Width = pct < 0 ? w : w * Math.Max(0, Math.Min(100, pct)) / 100.0;
+        }
+
+        void StartDownload()
+        {
+            if (installing) return;
+            if (state != St.Stopped) { SetDl(L.T("eng.stop_first"), -2, "Warn"); return; }
+            installing = true;
+            bool cuda = cbCudaPlugin != null && cbCudaPlugin.IsChecked == true && !EngineInstaller.IsArm64;
+            var inst = installer = new EngineInstaller();
+            inst.NvidiaDriver = Gpu.MinNvidiaDriver(gpus);
+            inst.Progress += (t, p) => Dispatcher.BeginInvoke(new Action(() => { if (installer == inst) SetDl(t, p); }));
+            SetDl(L.F("eng.query", "XMRig"), -1);
+            UpdateDlButton();
+            Log("gui", L.F("eng.query", "XMRig" + (cuda ? " + xmrig-cuda" : "")));
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                EngineInstaller.Result res = null;
+                Exception err = null;
+                try { res = inst.Install(cuda); } catch (Exception ex) { err = ex; }
+                if (res != null) Thread.Sleep(3000); // give an antivirus the chance to act before reporting success
+                Dispatcher.BeginInvoke(new Action(() => DownloadDone(res, err)));
+            });
+        }
+
+        void DownloadDone(EngineInstaller.Result res, Exception err)
+        {
+            installing = false;
+            installer = null;
+            if (err is OperationCanceledException)
+            {
+                SetDl(L.T("eng.cancelled"), -2, "Warn");
+                Log("gui", L.T("eng.cancelled"));
+            }
+            else if (err != null)
+            {
+                var msg = L.F("eng.failed", err.Message);
+                SetDl(msg, -2, "Bad");
+                Log("gui", msg);
+            }
+            else if (!Engine.Installed)
+            {
+                SetDl(L.T("eng.defender"), -2, "Bad");
+                Log("gui", L.T("eng.defender"));
+            }
+            else
+            {
+                var msg = L.F("eng.done", res.XmrigVersion, res.CudaVersion != null ? L.F("eng.done_cuda", res.CudaVersion, res.CudaToolkit) : "");
+                SetDl(msg, -2, "Good");
+                Log("gui", msg);
+                Engine.ForgetProbe(); // the new engine version re-tunes cn/0 on the next start
+            }
+            gpus = Gpu.Detect();
+            UpdateEngineStatus();
+            RebuildDevices();
+            UpdateBanner();
+            Refresh();
         }
 
         void RebuildDevices()
@@ -932,9 +1042,11 @@ namespace BcnMiner
             var msg = Validate(out fatal);
             if (fatal)
             {
-                ShowBanner(msg, Engine.Installed ? L.T("b.configure") : L.T("nav.devices"), () => Go(Engine.Installed ? (S.Mode == "solo" || S.ActivePools().Count > 0 ? 0 : 1) : 2));
+                if (!Engine.Installed) ShowBanner(msg, L.T("b.download"), () => { Go(2); StartDownload(); });
+                else ShowBanner(msg, L.T("b.configure"), () => Go(S.Mode == "solo" || S.ActivePools().Count > 0 ? 0 : 1));
                 return;
             }
+            if (installing) { ShowBanner(L.T("eng.busy"), L.T("nav.devices"), () => Go(2)); return; }
             long diff = StartDiff();
             state = St.Starting;
             userPaused = tempPaused = pendingRestart = false;
@@ -1166,6 +1278,7 @@ namespace BcnMiner
                 tempVal.Text = "—"; tempUnit.Text = ""; tempSub.Text = L.F("m.limit", S.GpuTempLimit);
             }
             chartUnit.Text = Fmt.UnitName(Fmt.UnitOf(chart.Max()));
+            UpdateDlButton();
 
             if (trayPause != null)
             {
@@ -1220,7 +1333,7 @@ namespace BcnMiner
 
         void UpdateBanner()
         {
-            if (!Engine.Installed) { ShowBanner(L.T("b.no_engine"), L.T("nav.devices"), () => Go(2)); return; }
+            if (!Engine.Installed) { ShowBanner(L.T("b.no_engine"), L.T("b.download"), () => { Go(2); StartDownload(); }); return; }
             if (pendingRestart && state != St.Stopped) { ShowBanner(L.T("b.changed"), L.T("b.restart"), () => RestartEngine(L.T("log.new_settings"))); return; }
             banner.Visibility = Visibility.Collapsed;
         }

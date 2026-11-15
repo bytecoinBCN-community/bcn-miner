@@ -11,12 +11,7 @@ Minerador de desktop para Bytecoin (BCN) que minera na CPU e em placas de vídeo
 ## Download e execução
 
 1. Baixe `BCNMiner-<versão>-win-portable.zip` em [bytecoin.community](https://bytecoin.community/#downloads) e descompacte onde quiser, inclusive num pendrive.
-2. Instale o motor de mineração. Na pasta descompactada, execute:
-   ```
-   powershell -ExecutionPolicy Bypass -File .\get-engine.ps1
-   ```
-   O script baixa a versão oficial do [XMRig](https://github.com/xmrig/xmrig) do GitHub e confere o SHA-256. Se o PC tiver placa NVIDIA, ele também adiciona o plugin xmrig-cuda.
-3. Execute `BCNMiner.exe`.
+2. Execute `BCNMiner.exe` e clique em **Baixar motor** (na tela Dispositivos ou no aviso da tela Mineração). O minerador baixa a versão oficial do [XMRig](https://github.com/xmrig/xmrig) do GitHub, confere o SHA-256 e, para placas NVIDIA, adiciona o plugin xmrig-cuda compilado para o seu driver. Pela linha de comando, o mesmo é feito com `powershell -ExecutionPolicy Bypass -File .\get-engine.ps1`.
 
 Não é preciso instalar nada: o .NET Framework 4.8 já vem com o Windows 10 e 11.
 
@@ -42,7 +37,7 @@ O minerador embutido no bytecoin-gui usa só a CPU. De lá vêm a lista de pools
 
 | Fabricante | Backend | Gerações | Observações |
 | --- | --- | --- | --- |
-| NVIDIA | CUDA (plugin `xmrig-cuda.dll`) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), RTX profissionais e GPUs de data center | As RTX 50 precisam de um plugin compilado com CUDA 12.8+; o `get-engine.ps1` pega a versão mais nova (CUDA 12.9 no momento). Temperatura, consumo e ventoinha vêm do NVML. |
+| NVIDIA | CUDA (plugin `xmrig-cuda.dll`) | Pascal (GTX 10), Turing (GTX 16, RTX 20), Ampere (RTX 30), Ada (RTX 40), Blackwell (RTX 50), RTX profissionais e GPUs de data center | As RTX 50 precisam de um plugin compilado com CUDA 12.8+; o minerador escolhe a versão mais nova que o seu driver suporta (CUDA 12.9 precisa do driver 527.41+, drivers antigos recebem 11.8 ou 10.2). Temperatura, consumo e ventoinha vêm do NVML. |
 | AMD | OpenCL | GCN 4 (RX 400/500), Vega, RDNA 1–4 (RX 5000–9000), Radeon Pro, Instinct | Temperatura e consumo vêm do ADL. |
 | Intel | OpenCL | Arc A (Alchemist), Arc B (Battlemage) | Experimental. Escolha Dispositivos → Plataforma OpenCL → Intel. |
 | Gráficos integrados | — | Intel UHD/Iris, Radeon em APUs | Não são usados: dividem memória e refrigeração com a CPU. |
