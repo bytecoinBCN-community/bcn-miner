@@ -1,5 +1,6 @@
 ﻿# Builds dist\BCNMiner.exe with the C# compiler that ships with Windows (.NET Framework 4.8).
-# Nothing to install: run from PowerShell in this folder:  .\build.ps1   (add -Release for the portable zip)
+# Nothing to install: run from PowerShell in this folder:  .\build.ps1
+#   -Release   also makes release\BCNMiner-<ver>-setup.exe, release\BCNMiner-<ver>-win-portable.zip and release\SHA256SUMS
 param([switch]$Release, [string]$OutDir)
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
@@ -51,11 +52,26 @@ if ($Release) {
         'Портативний режим: поки ця папка існує, BCN Miner зберігає тут налаштування й журнали. Видаліть її, щоб використовувати %APPDATA%\BCN Miner.')
     $rel = Join-Path $root 'release'
     New-Item -ItemType Directory -Force $rel | Out-Null
+    Get-ChildItem $rel -Filter '*.sha256' | Remove-Item
+
+    # 4a. installer: the same program without data\ (installed copies keep settings in %APPDATA%\BCN Miner)
+    $payload = Join-Path $obj 'payload.zip'
+    if (Test-Path $payload) { Remove-Item $payload }
+    Compress-Archive -Path (Get-ChildItem $stage | Where-Object Name -ne 'data' | ForEach-Object FullName) -DestinationPath $payload
+    & $csc /nologo /target:winexe /platform:anycpu /optimize+ /utf8output /codepage:65001 `
+        /out:"$rel\BCNMiner-$version-setup.exe" /win32icon:"$ico" /win32manifest:"$root\setup\setup.manifest" `
+        /resource:"$payload,payload.zip" $refs ('/r:' + (Join-Path $fw 'System.IO.Compression.dll')) `
+        ('/r:' + (Join-Path $fw 'System.IO.Compression.FileSystem.dll')) (Join-Path $root 'setup\Setup.cs')
+    if ($LASTEXITCODE -ne 0) { throw 'Setup build failed' }
+
+    # 4b. portable zip
     $zip = Join-Path $rel "BCNMiner-$version-win-portable.zip"
     if (Test-Path $zip) { Remove-Item $zip }
     Compress-Archive -Path $stage -DestinationPath $zip
-    $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
-    Set-Content "$zip.sha256" -Encoding Ascii -Value "$hash  $(Split-Path $zip -Leaf)"
-    Write-Host "OK: $zip"
-    Write-Host "SHA-256: $hash"
+    $sums = foreach ($f in @($zip, "$rel\BCNMiner-$version-setup.exe")) {
+        "$((Get-FileHash $f -Algorithm SHA256).Hash.ToLowerInvariant())  $(Split-Path $f -Leaf)"
+    }
+    Set-Content (Join-Path $rel 'SHA256SUMS') -Encoding Ascii -Value $sums
+    $sums | ForEach-Object { Write-Host $_ }
+    Write-Host "OK: $rel"
 }
