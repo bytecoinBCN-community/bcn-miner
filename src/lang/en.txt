@@ -249,3 +249,7 @@ eng.stop_first = Stop mining first.
 eng.busy = The engine is still downloading, please wait.
 b.download = Download
 eng.old_driver = NVIDIA driver {0} is too old for any xmrig-cuda build (441.22 or newer is needed). Update the driver or turn off “CUDA plugin for NVIDIA”.
+gpu.stalled = {0} is not hashing: the engine has not had a single hash from it for several minutes. Most likely the driver or the CUDA plugin cannot run this card. Turn it off (CPU mining continues) or update the NVIDIA driver.
+gpu.disable = Turn this GPU off
+gpu.disabled_log = {0} turned off because it does not hash
+d.no_hashes = not hashing

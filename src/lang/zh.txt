@@ -249,3 +249,7 @@ eng.stop_first = 请先停止挖矿。
 eng.busy = 引擎仍在下载，请稍候。
 b.download = 下载
 eng.old_driver = NVIDIA 驱动 {0} 太旧，无法运行任何 xmrig-cuda 版本（需要 441.22 或更新）。请更新驱动，或关闭“NVIDIA 的 CUDA 插件”。
+gpu.stalled = {0} 没有在挖矿：几分钟内引擎没有收到它的任何哈希。很可能驱动或 CUDA 插件无法运行这块显卡。请关闭它（CPU 挖矿会继续），或更新 NVIDIA 驱动。
+gpu.disable = 关闭这块 GPU
+gpu.disabled_log = {0} 未产生哈希，已关闭
+d.no_hashes = 未在挖矿

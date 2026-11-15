@@ -249,3 +249,7 @@ eng.stop_first = Primero detén la minería.
 eng.busy = El motor aún se está descargando, espera.
 b.download = Descargar
 eng.old_driver = El driver NVIDIA {0} es demasiado antiguo para cualquier versión de xmrig-cuda (hace falta 441.22 o posterior). Actualiza el driver o desactiva «Plugin CUDA para NVIDIA».
+gpu.stalled = {0} no está minando: el motor no ha recibido ni un hash de ella en varios minutos. Lo más probable es que el driver o el plugin CUDA no puedan usar esta tarjeta. Desactívala (la minería con la CPU continúa) o actualiza el driver NVIDIA.
+gpu.disable = Desactivar esta GPU
+gpu.disabled_log = {0} desactivada porque no mina
+d.no_hashes = no mina

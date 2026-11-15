@@ -249,3 +249,7 @@ eng.stop_first = Önce madenciliği durdurun.
 eng.busy = Motor hâlâ indiriliyor, lütfen bekleyin.
 b.download = İndir
 eng.old_driver = NVIDIA sürücüsü {0}, hiçbir xmrig-cuda derlemesi için yeterince yeni değil (441.22 veya daha yenisi gerekir). Sürücüyü güncelleyin ya da “NVIDIA için CUDA eklentisi”ni kapatın.
+gpu.stalled = {0} kazı yapmıyor: motor birkaç dakikadır bu karttan tek bir hash almadı. Büyük olasılıkla sürücü ya da CUDA eklentisi bu kartı çalıştıramıyor. Kartı kapatın (CPU ile kazı sürer) ya da NVIDIA sürücüsünü güncelleyin.
+gpu.disable = Bu GPU'yu kapat
+gpu.disabled_log = {0} kazı yapmadığı için kapatıldı
+d.no_hashes = kazı yapmıyor

@@ -18,7 +18,8 @@ namespace BcnMiner
         public string Type;     // cpu | cuda | opencl
         public int Index;
         public string Name;
-        public double H10, H60;
+        public double H10, H60, H15;
+        public bool NoData = true;   // the engine has not reported a single hashrate value for this device yet
         public int Threads;
         public int Temp = -1, Power = -1, Fan = -1;
         public string FanUnit = "%";
@@ -465,7 +466,8 @@ namespace BcnMiner
                         {
                             var d = new DeviceStat { Key = "cpu", Type = "cpu", Name = cpuBrand ?? "CPU", Threads = threads.Length };
                             var h = J.A(b, "hashrate");
-                            d.H10 = J.At(h, 0); d.H60 = J.At(h, 1);
+                            d.H10 = J.At(h, 0); d.H60 = J.At(h, 1); d.H15 = J.At(h, 2);
+                            d.NoData = !HasValue(h);
                             s.Devices.Add(d);
                             continue;
                         }
@@ -484,7 +486,8 @@ namespace BcnMiner
                             }
                             d.Threads++;
                             var h = J.A(t, "hashrate");
-                            d.H10 += J.At(h, 0); d.H60 += J.At(h, 1);
+                            d.H10 += J.At(h, 0); d.H60 += J.At(h, 1); d.H15 += J.At(h, 2);
+                            if (HasValue(h)) d.NoData = false;
                             var health = J.O(t, "health");
                             if (health != null)
                             {
@@ -499,10 +502,21 @@ namespace BcnMiner
                         }
                     }
                 }
+                // XMRig reports the total as null ("n/a") as soon as one thread has no data, e.g. a GPU that never
+                // starts hashing. Show the sum of the devices that do report instead of zero.
+                if (s.H10 <= 0 && s.H60 <= 0 && s.H15m <= 0)
+                    foreach (var d in s.Devices) { s.H10 += d.H10; s.H60 += d.H60; s.H15m += d.H15; }
                 s.Ok = true;
             }
             catch (Exception ex) { s.Error = ex.Message; }
             return s;
+        }
+
+        static bool HasValue(object[] a)
+        {
+            if (a == null) return false;
+            foreach (var v in a) if (v != null) return true;
+            return false;
         }
 
         // ---- kill the engine together with the GUI, even on a crash ----------------------------------

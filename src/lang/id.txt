@@ -249,3 +249,7 @@ eng.stop_first = Hentikan penambangan dulu.
 eng.busy = Mesin masih diunduh, harap tunggu.
 b.download = Unduh
 eng.old_driver = Driver NVIDIA {0} terlalu lama untuk build xmrig-cuda mana pun (perlu 441.22 atau lebih baru). Perbarui driver atau matikan “Plugin CUDA untuk NVIDIA”.
+gpu.stalled = {0} tidak menambang: mesin belum menerima satu hash pun darinya selama beberapa menit. Kemungkinan besar driver atau plugin CUDA tidak bisa menjalankan kartu ini. Matikan kartu ini (penambangan CPU tetap berjalan) atau perbarui driver NVIDIA.
+gpu.disable = Matikan GPU ini
+gpu.disabled_log = {0} dimatikan karena tidak menambang
+d.no_hashes = tidak menambang

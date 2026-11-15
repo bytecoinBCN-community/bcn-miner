@@ -249,3 +249,7 @@ eng.stop_first = Hãy dừng đào trước.
 eng.busy = Bộ máy vẫn đang tải, vui lòng chờ.
 b.download = Tải về
 eng.old_driver = Trình điều khiển NVIDIA {0} quá cũ cho mọi bản xmrig-cuda (cần 441.22 trở lên). Hãy cập nhật trình điều khiển hoặc tắt “Plugin CUDA cho NVIDIA”.
+gpu.stalled = {0} không đào: suốt vài phút bộ máy không nhận được hash nào từ card này. Nhiều khả năng trình điều khiển hoặc plugin CUDA không chạy được card này. Hãy tắt card (CPU vẫn tiếp tục đào) hoặc cập nhật trình điều khiển NVIDIA.
+gpu.disable = Tắt GPU này
+gpu.disabled_log = đã tắt {0} vì không đào
+d.no_hashes = không đào

@@ -887,7 +887,7 @@ namespace BcnMiner
                         (S.DisabledDevices.Contains(kv.Key) ? L.T("d.off") : (kv.Key.StartsWith("wmi:") ? "" : L.T("d.not_used_engine")));
                     continue;
                 }
-                var parts = new List<string> { Fmt.Hash(d.H10 > 0 ? d.H10 : d.H60) };
+                var parts = new List<string> { d.NoData && d.Type != "cpu" && s.Uptime >= 180 ? L.T("d.no_hashes") : Fmt.Hash(d.H10 > 0 ? d.H10 : d.H60) };
                 if (d.Type == "cpu") parts.Add(L.F("d.threads", d.Threads));
                 if (d.Temp > 0) parts.Add(d.Temp + " °C");
                 if (d.Power > 0) parts.Add(L.F("d.watts", d.Power));
@@ -1176,6 +1176,7 @@ namespace BcnMiner
             if (s.H60 > 0) S.LastHashrate = s.H60;
 
             LearnDevices(s);
+            StallGuard(s);
             TempGuard(s);
             AutoDiffCheck(s);
             Refresh();
@@ -1198,6 +1199,33 @@ namespace BcnMiner
                 S.KnownDevices.Sort(StringComparer.Ordinal);
                 S.Save();
                 RebuildDevices();
+            }
+        }
+
+        // A GPU that has not produced a single hash several minutes after the start (driver / plugin cannot run it):
+        // say so once per engine run and offer to switch it off.
+        readonly HashSet<string> stallWarned = new HashSet<string>();
+        int stallGen = -1;
+
+        void StallGuard(EngineSnapshot s)
+        {
+            if (stallGen != engine.Generation) { stallGen = engine.Generation; stallWarned.Clear(); }
+            if (state != St.Running || tempPaused || s.Uptime < 180) return;
+            foreach (var d in s.Devices)
+            {
+                if (d.Type == "cpu" || !d.NoData || stallWarned.Contains(d.Key)) continue;
+                stallWarned.Add(d.Key);
+                var key = d.Key;
+                var msg = L.F("gpu.stalled", d.Name);
+                Log("gui", msg);
+                ShowBanner(msg, L.T("gpu.disable"), () =>
+                {
+                    if (!S.DisabledDevices.Contains(key)) S.DisabledDevices.Add(key);
+                    S.Save();
+                    RebuildDevices();
+                    banner.Visibility = Visibility.Collapsed;
+                    if (state != St.Stopped) RestartEngine(L.F("gpu.disabled_log", key));
+                });
             }
         }
 
