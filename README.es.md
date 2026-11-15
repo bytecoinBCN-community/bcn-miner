@@ -10,7 +10,7 @@ Es un proyecto independiente de la comunidad Bytecoin, sin relación con los fun
 
 ## Descarga y ejecución
 
-1. Descarga `BCNMiner-<versión>-win-portable.zip` desde [Releases](../../releases) y descomprímelo donde quieras, incluso en una memoria USB.
+1. Descarga `BCNMiner-<versión>-win-portable.zip` desde [bytecoin.community](https://bytecoin.community/#downloads) y descomprímelo donde quieras, incluso en una memoria USB.
 2. Instala el motor de minería. En la carpeta descomprimida, ejecuta:
    ```
    powershell -ExecutionPolicy Bypass -File .\get-engine.ps1

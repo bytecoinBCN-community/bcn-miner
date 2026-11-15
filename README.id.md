@@ -10,7 +10,7 @@ Ini adalah proyek independen komunitas Bytecoin, tidak berafiliasi dengan para p
 
 ## Unduh dan jalankan
 
-1. Unduh `BCNMiner-<versi>-win-portable.zip` dari [Releases](../../releases), lalu ekstrak di mana saja, bahkan di flashdisk.
+1. Unduh `BCNMiner-<versi>-win-portable.zip` dari [bytecoin.community](https://bytecoin.community/#downloads), lalu ekstrak di mana saja, bahkan di flashdisk.
 2. Pasang mesin penambangan. Di folder hasil ekstrak, jalankan:
    ```
    powershell -ExecutionPolicy Bypass -File .\get-engine.ps1

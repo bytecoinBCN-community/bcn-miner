@@ -10,7 +10,7 @@ This is an independent Bytecoin community project, not affiliated with the Bytec
 
 ## Download and run
 
-1. Download `BCNMiner-<version>-win-portable.zip` from [Releases](../../releases) and unpack it anywhere, a USB stick included.
+1. Download `BCNMiner-<version>-win-portable.zip` from [bytecoin.community](https://bytecoin.community/#downloads) and unpack it anywhere, a USB stick included.
 2. Install the mining engine. In the unpacked folder, run:
    ```
    powershell -ExecutionPolicy Bypass -File .\get-engine.ps1

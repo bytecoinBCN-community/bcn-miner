@@ -10,7 +10,7 @@ Bytecoin（BCN）桌面挖矿程序，可使用 CPU 以及 NVIDIA、AMD 和 Inte
 
 ## 下载与运行
 
-1. 从 [Releases](../../releases) 下载 `BCNMiner-<版本>-win-portable.zip`，解压到任意位置，U 盘也可以。
+1. 从 [bytecoin.community](https://bytecoin.community/#downloads) 下载 `BCNMiner-<版本>-win-portable.zip`，解压到任意位置，U 盘也可以。
 2. 安装挖矿引擎。在解压后的文件夹中运行：
    ```
    powershell -ExecutionPolicy Bypass -File .\get-engine.ps1

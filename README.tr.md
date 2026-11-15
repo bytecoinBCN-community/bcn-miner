@@ -10,7 +10,7 @@ Bytecoin topluluğunun bağımsız bir projesidir; Bytecoin'in kurucularıyla ve
 
 ## İndirme ve çalıştırma
 
-1. [Releases](../../releases) sayfasından `BCNMiner-<sürüm>-win-portable.zip` dosyasını indirin ve istediğiniz yere, bir USB belleğe bile açın.
+1. [bytecoin.community](https://bytecoin.community/#downloads) sayfasından `BCNMiner-<sürüm>-win-portable.zip` dosyasını indirin ve istediğiniz yere, bir USB belleğe bile açın.
 2. Madencilik motorunu kurun. Açtığınız klasörde şunu çalıştırın:
    ```
    powershell -ExecutionPolicy Bypass -File .\get-engine.ps1

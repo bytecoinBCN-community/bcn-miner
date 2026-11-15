@@ -10,7 +10,7 @@ Trình đào Bytecoin (BCN) trên máy tính, đào bằng CPU và card đồ h�
 
 ## Tải về và chạy
 
-1. Tải `BCNMiner-<phiên bản>-win-portable.zip` từ [Releases](../../releases) và giải nén ở bất kỳ đâu, kể cả USB.
+1. Tải `BCNMiner-<phiên bản>-win-portable.zip` từ [bytecoin.community](https://bytecoin.community/#downloads) và giải nén ở bất kỳ đâu, kể cả USB.
 2. Cài bộ máy đào. Trong thư mục vừa giải nén, chạy:
    ```
    powershell -ExecutionPolicy Bypass -File .\get-engine.ps1

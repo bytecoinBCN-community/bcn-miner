@@ -10,7 +10,7 @@
 
 ## Завантаження і запуск
 
-1. Завантажте `BCNMiner-<версія>-win-portable.zip` з [Releases](../../releases) і розпакуйте куди завгодно, хоч на флешку.
+1. Завантажте `BCNMiner-<версія>-win-portable.zip` з [bytecoin.community](https://bytecoin.community/#downloads) і розпакуйте куди завгодно, хоч на флешку.
 2. Встановіть рушій. У розпакованій папці запустіть:
    ```
    powershell -ExecutionPolicy Bypass -File .\get-engine.ps1

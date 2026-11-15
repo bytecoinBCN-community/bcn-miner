@@ -10,7 +10,7 @@ Minerador de desktop para Bytecoin (BCN) que minera na CPU e em placas de vídeo
 
 ## Download e execução
 
-1. Baixe `BCNMiner-<versão>-win-portable.zip` em [Releases](../../releases) e descompacte onde quiser, inclusive num pendrive.
+1. Baixe `BCNMiner-<versão>-win-portable.zip` em [bytecoin.community](https://bytecoin.community/#downloads) e descompacte onde quiser, inclusive num pendrive.
 2. Instale o motor de mineração. Na pasta descompactada, execute:
    ```
    powershell -ExecutionPolicy Bypass -File .\get-engine.ps1
