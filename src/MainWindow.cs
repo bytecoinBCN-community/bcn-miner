@@ -388,6 +388,23 @@ namespace BcnMiner
                 Changed();
             };
             conn.Children.Add(thrSlider);
+
+            // load summary: CPU % and each GPU's % of video memory, changed on the Devices screen
+            loadSummary = U.T("", 12, "Muted");
+            loadSummary.VerticalAlignment = VerticalAlignment.Center;
+            var hl = new Hyperlink(new Run(L.T("m.load_change"))) { TextDecorations = null, Cursor = Cursors.Hand };
+            hl.SetResourceReference(TextElement.ForegroundProperty, "Link");
+            hl.Click += (a, b) => Go(2);
+            hl.MouseEnter += (a, b) => hl.TextDecorations = TextDecorations.Underline;
+            hl.MouseLeave += (a, b) => hl.TextDecorations = null;
+            var change = new TextBlock { FontSize = 12, ToolTip = L.T("nav.devices") };
+            change.Inlines.Add(hl);
+            AutomationProperties.SetName(change, L.T("m.load_change"));
+            change.Margin = new Thickness(10, 0, 0, 0);
+            change.VerticalAlignment = VerticalAlignment.Center;
+            var loadRow = U.Columns("1*", loadSummary, "auto", change);
+            loadRow.Margin = new Thickness(0, 12, 0, 0);
+            conn.Children.Add(loadRow);
             var connCard = U.Card(conn);
 
             var row = U.Columns("1.55*", chartCard, 14, null, "1*", connCard);
@@ -446,6 +463,35 @@ namespace BcnMiner
             walletHint.Text = solo ? L.T("m.hint_solo") : L.T("m.hint_pool");
             U.SelectSeg(modeBtns, S.Mode);
             suppress = false;
+        }
+
+        TextBlock loadSummary;
+
+        void UpdateLoadSummary()
+        {
+            if (loadSummary == null) return;
+            var parts = new List<string>();
+            parts.Add(S.CpuEnabled
+                ? L.F("m.load_cpu", (int)Math.Round(S.EffectiveThreads() * 100.0 / Environment.ProcessorCount))
+                : L.F("m.load_off", "CPU"));
+            foreach (var kd in S.KnownDevices)
+            {
+                var p = kd.Split(new[] { '|' }, 2);
+                string key = p[0], name = p.Length > 1 ? p[1] : key;
+                bool cuda = key.StartsWith("cuda");
+                if ((cuda && !S.CudaEnabled) || (!cuda && !S.OpenClEnabled) || S.DisabledDevices.Contains(key))
+                {
+                    parts.Add(L.F("m.load_off", name));
+                    continue;
+                }
+                int idx;
+                int.TryParse(key.Substring(key.IndexOf(':') + 1), out idx);
+                var g = Gpu.Match(gpus, name) ?? Engine.DeviceGpu(cuda ? "cuda" : "opencl", idx, S, gpus);
+                int pct = S.LoadPercent(key);
+                if (pct <= 0) pct = Gpu.DefaultLoadPercent(g);
+                parts.Add(L.F("m.load_gpu", name, pct));
+            }
+            loadSummary.Text = L.T("m.load") + ": " + string.Join(" · ", parts);
         }
 
         void UpdateThreadsLabel()
@@ -631,7 +677,7 @@ namespace BcnMiner
             dlCancel = U.Btn(L.T("eng.cancel"), "Small", (a, b) => { if (installer != null) installer.Cancel(); });
             dlCancel.Visibility = Visibility.Collapsed;
             var b1 = U.Btn(L.T("d.open_engine"), "Small", (a, b) => OpenFolder(Engine.EngineDir), U.IcFolder);
-            var b2 = U.Btn(L.T("d.recheck"), "Small", (a, b) => { gpus = Gpu.Detect(); Engine.ForgetProbe(); UpdateEngineStatus(); RebuildDevices(); UpdateBanner(); }, U.IcRefresh);
+            var b2 = U.Btn(L.T("d.recheck"), "Small", (a, b) => { gpus = Gpu.Detect(); Engine.ForgetProbe(); S.GpuLoadCaps.Clear(); S.Save(); UpdateEngineStatus(); RebuildDevices(); UpdateBanner(); }, U.IcRefresh);
             foreach (var x in new[] { dlBtn, dlCancel, b1, b2 }) { x.Margin = new Thickness(0, 10, 10, 0); engBtns.Children.Add(x); }
             eng.Children.Add(engBtns);
             var src = U.T(L.T("eng.source"), 11, "Muted");
@@ -811,12 +857,14 @@ namespace BcnMiner
             {
                 var parts = kd.Split(new[] { '|' }, 2);
                 string key = parts[0], name = parts.Length > 1 ? parts[1] : key;
-                var g = Gpu.Match(gpus, name);
+                int devIdx;
+                int.TryParse(key.Substring(key.IndexOf(':') + 1), out devIdx);
+                var g = Gpu.Match(gpus, name) ?? Engine.DeviceGpu(key.StartsWith("cuda") ? "cuda" : "opencl", devIdx, S, gpus);
                 if (g != null) shown.Add(g.Name);
                 string type = key.StartsWith("cuda") ? "CUDA" : "OpenCL";
-                var tags = new List<string> { type + " #" + key.Substring(key.IndexOf(':') + 1) };
+                var tags = new List<string> { type + " #" + devIdx };
                 if (g != null) { tags.Add(g.Arch); if (g.Vram > 0) tags.Add(Gpu.Size(g.Vram)); }
-                AddDeviceCard(key, name, tags.ToArray(), g != null ? g.Note : null, key, g != null ? g.Driver : null);
+                AddDeviceCard(key, name, tags.ToArray(), g != null ? g.Note : null, key, g != null ? g.Driver : null, g);
             }
             foreach (var g in gpus)
             {
@@ -839,7 +887,7 @@ namespace BcnMiner
             if (last != null) UpdateDeviceStats(last);
         }
 
-        void AddDeviceCard(string key, string name, string[] tags, string note, string toggleKey, string driver = null)
+        void AddDeviceCard(string key, string name, string[] tags, string note, string toggleKey, string driver = null, GpuInfo gpu = null)
         {
             var left = new StackPanel();
             left.Children.Add(U.T(name, 14, "Text", true));
@@ -859,6 +907,7 @@ namespace BcnMiner
             stat.Margin = new Thickness(0, 8, 0, 0);
             left.Children.Add(stat);
             devStats[key] = stat;
+            if (toggleKey != null) left.Children.Add(LoadBlock(toggleKey, gpu));
 
             UIElement right = null;
             if (toggleKey != null)
@@ -872,6 +921,88 @@ namespace BcnMiner
             var card = U.Card(U.Columns("1*", left, "auto", right));
             card.Margin = new Thickness(0, 10, 0, 0);
             devPanel.Children.Add(card);
+        }
+
+        // GPU load: % of the card's video memory used for hashes in flight (2 MB each). Default 40% on old cards,
+        // 80% on the rest; the engine never goes above XMRig's own value.
+        FrameworkElement LoadBlock(string key, GpuInfo g)
+        {
+            int def = Gpu.DefaultLoadPercent(g);
+            int cur = S.LoadPercent(key);
+            if (cur <= 0) cur = def;
+            var box = new StackPanel { Margin = new Thickness(0, 14, 0, 0), MaxWidth = 560, HorizontalAlignment = HorizontalAlignment.Left };
+            var value = U.T("", 12, "Text", true);
+            Func<int, string> describe = p => g != null && g.Vram > 0
+                ? L.F("d.load_value", p, Gpu.Size(g.Vram * p / 100))
+                : L.F("d.load_value_nomem", p);
+            value.Text = describe(cur);
+            var head = U.Columns("1*", U.T(L.T("d.load"), 12, "Muted"), "auto", value);
+            box.Children.Add(head);
+            var slider = U.Range(10, 90, cur);
+            slider.TickFrequency = 5;
+            slider.SmallChange = 5;
+            slider.LargeChange = 10;
+            slider.Margin = new Thickness(0, 6, 0, 0);
+            AutomationProperties.SetName(slider, L.T("d.load"));
+            box.Children.Add(slider);
+            var warn = U.T(L.F("d.load_warn", def), 11, cur == def ? "Muted" : "Warn");
+            warn.Margin = new Thickness(0, 6, 0, 0);
+            box.Children.Add(warn);
+            int autoCap = S.LoadCap(key);
+            if (autoCap > 0)
+            {
+                var capped = U.T(L.F("d.load_capped", autoCap), 11, "Warn");
+                capped.Margin = new Thickness(0, 4, 0, 0);
+                box.Children.Add(capped);
+            }
+            var reset = U.Btn(L.F("d.load_default", def), "Small", null);
+            reset.HorizontalAlignment = HorizontalAlignment.Left;
+            reset.Margin = new Thickness(0, 8, 0, 0);
+            reset.Visibility = cur == def && autoCap == 0 ? Visibility.Collapsed : Visibility.Visible;
+            box.Children.Add(reset);
+
+            bool loading = true;
+            slider.ValueChanged += (a, b) =>
+            {
+                if (loading) return;
+                int p = (int)Math.Round(slider.Value / 5) * 5;
+                value.Text = describe(p);
+                S.SetLoadPercent(key, p == def ? 0 : p);
+                S.SetLoadCap(key, 0);   // a hand-set load replaces the automatic reduction after a timeout
+                warn.SetResourceReference(TextBlock.ForegroundProperty, p == def ? "Muted" : "Warn");
+                reset.Visibility = p == def ? Visibility.Collapsed : Visibility.Visible;
+                Changed();
+                ApplyLoadSoon();
+            };
+            reset.Click += (a, b) =>
+            {
+                S.SetLoadPercent(key, 0);
+                S.SetLoadCap(key, 0);
+                Changed();
+                RebuildDevices();
+                ApplyLoadSoon();
+            };
+            loading = false;
+            return box;
+        }
+
+        // A new GPU load only takes effect in a new engine run: restart it 2 s after the slider stops moving.
+        DispatcherTimer loadTimer;
+
+        void ApplyLoadSoon()
+        {
+            if (state == St.Stopped) return;
+            if (loadTimer == null)
+            {
+                loadTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+                loadTimer.Tick += (a, b) =>
+                {
+                    loadTimer.Stop();
+                    if (state != St.Stopped) RestartEngine(L.T("log.load_changed"));
+                };
+            }
+            loadTimer.Stop();
+            loadTimer.Start();
         }
 
         void UpdateDeviceStats(EngineSnapshot s)
@@ -889,6 +1020,8 @@ namespace BcnMiner
                 }
                 var parts = new List<string> { d.NoData && d.Type != "cpu" && s.Uptime >= 180 ? L.T("d.no_hashes") : Fmt.Hash(d.H10 > 0 ? d.H10 : d.H60) };
                 if (d.Type == "cpu") parts.Add(L.F("d.threads", d.Threads));
+                int inflight;
+                if (d.Type == "cuda" && engine.CudaLoad.TryGetValue(d.Index, out inflight)) parts.Add(L.F("d.inflight", inflight));
                 if (d.Temp > 0) parts.Add(d.Temp + " °C");
                 if (d.Power > 0) parts.Add(L.F("d.watts", d.Power));
                 if (d.Fan > 0) parts.Add(L.F("d.fan", d.Fan + d.FanUnit));
@@ -999,6 +1132,7 @@ namespace BcnMiner
         void Changed()
         {
             S.Save();
+            UpdateLoadSummary();
             if (state != St.Stopped && !pendingRestart)
             {
                 pendingRestart = true;
@@ -1307,6 +1441,7 @@ namespace BcnMiner
             }
             chartUnit.Text = Fmt.UnitName(Fmt.UnitOf(chart.Max()));
             UpdateDlButton();
+            UpdateLoadSummary();
 
             if (trayPause != null)
             {
@@ -1380,6 +1515,45 @@ namespace BcnMiner
             var m = RxHeight.Match(line);
             if (m.Success) { long h; if (long.TryParse(m.Groups[1].Value, out h)) height = h; }
             AddLine(line);
+            var f = RxGpuFail.Match(line);
+            if (f.Success) Dispatcher.BeginInvoke(new Action(() => OnGpuFailed(int.Parse(f.Groups[1].Value), line)));
+        }
+
+        // "nvidia   thread #0 failed with error <cryptonight_extra_cpu_final>:440 "the launch timed out and was terminated""
+        // Windows' GPU watchdog (TDR) killed a kernel that ran too long; XMRig never restarts that thread.
+        static readonly Regex RxGpuFail = new Regex(@"nvidia\s+thread #(\d+) failed with error");
+        int gpuFailGen = -1;
+        const int MinCudaLoad = 64;
+
+        void OnGpuFailed(int thread, string line)
+        {
+            if (state == St.Stopped || gpuFailGen == engine.Generation) return; // react once per engine run
+            gpuFailGen = engine.Generation;
+            int idx = thread < engine.CudaThreadDevice.Count ? engine.CudaThreadDevice[thread] : thread;
+            string key = "cuda:" + idx;
+            int cur;
+            if (!engine.CudaLoad.TryGetValue(idx, out cur)) cur = 0;
+            string name = key;
+            foreach (var kd in S.KnownDevices) if (kd.StartsWith(key + "|")) name = kd.Substring(key.Length + 1);
+            if (cur > 0 && cur / 2 >= MinCudaLoad)
+            {
+                int next = cur / 2;
+                S.SetLoadCap(key, next);
+                S.Save();
+                var msg = L.F("gpu.timeout", name, cur, next);
+                Log("gui", msg);
+                RestartEngine(msg);
+            }
+            else
+            {
+                if (!S.DisabledDevices.Contains(key)) S.DisabledDevices.Add(key);
+                S.Save();
+                var msg = L.F("gpu.timeout_off", name);
+                Log("gui", msg);
+                RebuildDevices();
+                RestartEngine(msg);
+                ShowBanner(msg, L.T("nav.devices"), () => Go(2));
+            }
         }
 
         void AddLine(string line)

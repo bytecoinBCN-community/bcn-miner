@@ -21,13 +21,13 @@ using Microsoft.Win32;
 [assembly: AssemblyProduct("BCN Miner")]
 [assembly: AssemblyCompany("Bytecoin Community")]
 [assembly: AssemblyCopyright("Bytecoin Community, LGPL-3.0")]
-[assembly: AssemblyVersion("1.1.1.0")]
-[assembly: AssemblyFileVersion("1.1.1.0")]
-[assembly: AssemblyInformationalVersion("1.1.1")]
+[assembly: AssemblyVersion("1.1.6.0")]
+[assembly: AssemblyFileVersion("1.1.6.0")]
+[assembly: AssemblyInformationalVersion("1.1.6")]
 
 static class Setup
 {
-    const string Version = "1.1.1";
+    const string Version = "1.1.6";
     const string AppName = "BCN Miner";
     const string Exe = "BCNMiner.exe";
     const string UninstallKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\BCNMiner";

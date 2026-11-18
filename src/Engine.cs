@@ -280,9 +280,9 @@ namespace BcnMiner
                     {"priority", prio}, {"memory-pool", false}, {"yield", s.Profile != "max"}, {"asm", true},
                     {"cn/0", cpuThreads} }},
                 {"opencl", new Dictionary<string, object> { {"enabled", OpenClOn}, {"cache", true}, {"loader", null},
-                    {"platform", platform ?? "AMD"}, {"adl", true}, {"cn/0", oclThreads} }},
+                    {"platform", platform ?? "AMD"}, {"adl", true}, {"cn/0", ApplyOclProfile(oclThreads, s, gpus)} }},
                 {"cuda", new Dictionary<string, object> { {"enabled", CudaOn}, {"loader", "xmrig-cuda.dll"}, {"nvml", true},
-                    {"cn/0", ApplyCudaProfile(cudaThreads, bfactor, bsleep)} }},
+                    {"cn/0", ApplyCudaProfile(cudaThreads, bfactor, bsleep, s, gpus)} }},
                 {"donate-level", 1},
                 {"donate-over-proxy", 1},
                 {"log-file", LogPath},
@@ -305,9 +305,40 @@ namespace BcnMiner
             return cfg;
         }
 
-        // The load profile sets how much GPU time CUDA kernels give back to the desktop.
-        static List<object> ApplyCudaProfile(List<object> threads, int bfactor, int bsleep)
+        // GPU load: each hash in flight needs a 2 MB scratchpad, so "load" = hashes at once x 2 MB of video memory.
+        // XMRig's autoconfig fills most of the memory; the miner lowers that to a % of the card's VRAM: by default
+        // 40% on old cards (a GTX 965M, 2 GB, driver 451, hung at XMRig's 720 = 70% and ran at 16x24 = 384) and
+        // 80% on the rest, or what the user set on the Devices screen. It never raises XMRig's own value.
+        // A card that hit a launch timeout also keeps the lower, auto-saved cap (S.GpuLoadCaps).
+
+        // CUDA thread order in the config (XMRig numbers its threads #0, #1… in this order) → device index,
+        // and the load (threads x blocks) each device was started with. Used to react to "launch timed out".
+        public readonly List<int> CudaThreadDevice = new List<int>();
+        public readonly Dictionary<int, int> CudaLoad = new Dictionary<int, int>();
+
+        // Hashes at once allowed for a device, or int.MaxValue when its memory is unknown and nothing is saved.
+        static int LoadCapFor(string key, GpuInfo g, MinerSettings s, out int pct)
         {
+            pct = s.LoadPercent(key);
+            if (pct <= 0) pct = Gpu.DefaultLoadPercent(g);
+            int cap = g != null && g.Vram > 0 ? (int)(g.Vram / 1048576 * pct / 100 / 2) : int.MaxValue;
+            int saved = s.LoadCap(key);
+            if (saved > 0) cap = Math.Min(cap, saved);
+            return cap;
+        }
+
+        void LogCap(string type, int idx, string from, string to, int pct, GpuInfo g, bool bySaved)
+        {
+            if (Line == null) return;
+            Line("[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "]  gui      " + (bySaved
+                ? L.F("eng.cuda_cap_saved", type + " #" + idx, from, to)
+                : L.F("eng.cuda_cap", type + " #" + idx, from, to, pct, g != null ? Gpu.Size(g.Vram) : "?")));
+        }
+
+        List<object> ApplyCudaProfile(List<object> threads, int bfactor, int bsleep, MinerSettings s, List<GpuInfo> gpus)
+        {
+            CudaThreadDevice.Clear();
+            CudaLoad.Clear();
             var r = new List<object>();
             foreach (var t in threads)
             {
@@ -316,9 +347,81 @@ namespace BcnMiner
                 var c = new Dictionary<string, object>(d);
                 c["bfactor"] = bfactor;
                 c["bsleep"] = bsleep;
+                int idx = (int)J.N(c, "index"), th = (int)J.N(c, "threads"), bl = (int)J.N(c, "blocks");
+                string key = "cuda:" + idx;
+                var g = DeviceGpu("cuda", idx, s, gpus);
+                int saved = s.LoadCap(key);
+                // shorter kernel launches (bfactor 10) for old cards and for a card that already timed out:
+                // a GTX 965M ran 288 at bfactor 10 for minutes but timed out at 304 with bfactor 6 within 8 s
+                if (saved > 0 || Gpu.IsOld(g)) c["bfactor"] = Math.Max(bfactor, 10);
+                int pct;
+                int cap = LoadCapFor(key, g, s, out pct);
+                if (th > 0 && bl > 0 && th * bl > cap)
+                {
+                    // the largest threads x blocks under the cap: threads stay a multiple of 8 (CUDA warps),
+                    // blocks shrink one by one; on a tie keep more blocks (more of the card's multiprocessors busy)
+                    int nth = 8, nbl = Math.Max(1, Math.Min(bl, cap / 8));
+                    for (int t2 = Math.Max(8, th / 8 * 8); t2 >= 8; t2 -= 8)
+                    {
+                        int b2 = Math.Min(bl, cap / t2);
+                        if (b2 < 1) continue;
+                        if (t2 * b2 > nth * nbl || (t2 * b2 == nth * nbl && b2 > nbl)) { nth = t2; nbl = b2; }
+                    }
+                    c["threads"] = nth;
+                    c["blocks"] = nbl;
+                    LogCap("CUDA", idx, th + "x" + bl, nth + "x" + nbl, pct, g, saved > 0 && saved == cap);
+                }
+                CudaThreadDevice.Add(idx);
+                CudaLoad[idx] = (int)J.N(c, "threads") * (int)J.N(c, "blocks");
                 r.Add(c);
             }
             return r;
+        }
+
+        // OpenCL threads carry "intensity" (hashes at once, a multiple of "worksize").
+        List<object> ApplyOclProfile(List<object> threads, MinerSettings s, List<GpuInfo> gpus)
+        {
+            var r = new List<object>();
+            foreach (var t in threads)
+            {
+                var d = t as Dictionary<string, object>;
+                if (d == null) { r.Add(t); continue; }
+                var c = new Dictionary<string, object>(d);
+                int idx = (int)J.N(c, "index"), inten = (int)J.N(c, "intensity"), ws = Math.Max(1, (int)J.N(c, "worksize"));
+                string key = "opencl:" + idx;
+                var g = DeviceGpu("opencl", idx, s, gpus);
+                int pct;
+                // XMRig may run several threads on one OpenCL card: the cap is shared between them
+                int perCard = 0;
+                foreach (var o in threads) if ((int)J.N(o, "index") == idx) perCard++;
+                int cap = LoadCapFor(key, g, s, out pct);
+                if (cap != int.MaxValue) cap /= Math.Max(1, perCard);
+                if (inten > 0 && inten > cap)
+                {
+                    int ni = Math.Max(ws * 8, cap / ws * ws);
+                    c["intensity"] = ni;
+                    LogCap("OpenCL", idx, inten.ToString(), ni.ToString(), pct, g, false);
+                }
+                r.Add(c);
+            }
+            return r;
+        }
+
+        // The Windows video adapter behind engine device type:idx — by the name the engine reported earlier,
+        // or by order among the cards of the matching vendor.
+        public static GpuInfo DeviceGpu(string type, int idx, MinerSettings s, List<GpuInfo> gpus)
+        {
+            foreach (var kd in s.KnownDevices)
+            {
+                var parts = kd.Split(new[] { '|' }, 2);
+                if (parts.Length == 2 && parts[0] == type + ":" + idx)
+                {
+                    var g = Gpu.Match(gpus, parts[1]);
+                    if (g != null) return g;
+                }
+            }
+            var list = gpus.FindAll(g => type == "cuda" ? g.Vendor == "NVIDIA" : !g.Integrated && g.Backend == "OpenCL");
+            return list.Count == 0 ? null : list[Math.Min(idx, list.Count - 1)];
         }
 
         // ---- process ---------------------------------------------------------------------------------

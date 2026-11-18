@@ -176,6 +176,22 @@ namespace BcnMiner
             return min;
         }
 
+        // Old cards get a cautious default load: Maxwell / Kepler, 4 GB of video memory or less, or an NVIDIA
+        // driver older than CUDA 11.1's (452.39). A GTX 965M on driver 451 hung at XMRig's own 70% load.
+        public static bool IsOld(GpuInfo g)
+        {
+            if (g == null) return false;
+            var a = (g.Arch ?? "").ToLowerInvariant();
+            if (a.Contains("maxwell") || a.Contains("kepler")) return true;
+            if (g.Vram > 0 && g.Vram <= 4L * 1073741824) return true;
+            if (g.Vendor == "NVIDIA") { double d = NvidiaDriver(g.Driver); if (d > 0 && d < 452.39) return true; }
+            return false;
+        }
+
+        public const int OldLoadPercent = 40, NewLoadPercent = 80;
+
+        public static int DefaultLoadPercent(GpuInfo g) { return IsOld(g) ? OldLoadPercent : NewLoadPercent; }
+
         // Minimum Windows driver for a CUDA toolkit (NVIDIA's minor-version compatibility table).
         public static double DriverForCuda(Version cuda)
         {

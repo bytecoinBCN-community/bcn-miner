@@ -22,6 +22,8 @@ namespace BcnMiner
         public string OpenClPlatform { get; set; }  // "auto" | "AMD" | "Intel" | "NVIDIA"
         public List<string> DisabledDevices { get; set; } // "cuda:0", "opencl:1"
         public List<string> KnownDevices { get; set; }    // "cuda:0|NVIDIA GeForce RTX 4070", learnt from the engine
+        public List<string> GpuLoadCaps { get; set; }     // "cuda:0|192": max threads x blocks after the card hit a launch timeout
+        public List<string> GpuLoadPercent { get; set; }  // "cuda:0|60": user-chosen load, % of the card's video memory (absent = default)
         public int GpuTempLimit { get; set; }
         public string Profile { get; set; }         // "eco" | "balanced" | "max"
         public string Theme { get; set; }           // "system" | "dark" | "light"
@@ -51,6 +53,8 @@ namespace BcnMiner
             OpenClPlatform = "auto";
             DisabledDevices = new List<string>();
             KnownDevices = new List<string>();
+            GpuLoadCaps = new List<string>();
+            GpuLoadPercent = new List<string>();
             GpuTempLimit = 80;
             Profile = "balanced";
             Theme = "system";
@@ -105,6 +109,41 @@ namespace BcnMiner
 
         static string FilePath { get { return Path.Combine(Dir, "settings.json"); } }
 
+        public int LoadCap(string key)
+        {
+            foreach (var e in GpuLoadCaps)
+            {
+                var p = e.Split('|');
+                int v;
+                if (p.Length == 2 && p[0] == key && int.TryParse(p[1], out v)) return v;
+            }
+            return 0;
+        }
+
+        public void SetLoadCap(string key, int value)
+        {
+            GpuLoadCaps.RemoveAll(e => e.StartsWith(key + "|"));
+            if (value > 0) GpuLoadCaps.Add(key + "|" + value);
+        }
+
+        // 0 = not set (use the card's default)
+        public int LoadPercent(string key)
+        {
+            foreach (var e in GpuLoadPercent)
+            {
+                var p = e.Split('|');
+                int v;
+                if (p.Length == 2 && p[0] == key && int.TryParse(p[1], out v)) return v;
+            }
+            return 0;
+        }
+
+        public void SetLoadPercent(string key, int value)
+        {
+            GpuLoadPercent.RemoveAll(e => e.StartsWith(key + "|"));
+            if (value > 0) GpuLoadPercent.Add(key + "|" + value);
+        }
+
         public int EffectiveThreads()
         {
             int n = Environment.ProcessorCount;
@@ -157,6 +196,8 @@ namespace BcnMiner
             if (OpenClPlatform != "AMD" && OpenClPlatform != "Intel" && OpenClPlatform != "NVIDIA") OpenClPlatform = "auto";
             if (DisabledDevices == null) DisabledDevices = new List<string>();
             if (KnownDevices == null) KnownDevices = new List<string>();
+            if (GpuLoadCaps == null) GpuLoadCaps = new List<string>();
+            if (GpuLoadPercent == null) GpuLoadPercent = new List<string>();
             if (GpuTempLimit < 50 || GpuTempLimit > 95) GpuTempLimit = d.GpuTempLimit;
             if (Profile != "eco" && Profile != "max") Profile = "balanced";
             if (Theme != "dark" && Theme != "light") Theme = "system";

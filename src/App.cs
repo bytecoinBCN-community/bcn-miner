@@ -11,15 +11,15 @@ using System.Windows.Markup;
 [assembly: AssemblyDescription("GUI miner for Bytecoin (BCN), CryptoNight cn/0, CPU + NVIDIA CUDA + AMD/Intel OpenCL")]
 [assembly: AssemblyCompany("Bytecoin Community")]
 [assembly: AssemblyCopyright("Bytecoin Community, LGPL-3.0")]
-[assembly: AssemblyVersion("1.1.1.0")]
-[assembly: AssemblyFileVersion("1.1.1.0")]
-[assembly: AssemblyInformationalVersion("1.1.1")]
+[assembly: AssemblyVersion("1.1.6.0")]
+[assembly: AssemblyFileVersion("1.1.6.0")]
+[assembly: AssemblyInformationalVersion("1.1.6")]
 
 namespace BcnMiner
 {
     public static class App
     {
-        public const string Version = "1.1.1";
+        public const string Version = "1.1.6";
         public const string SiteUrl = "https://bytecoin.community";
         public const string PoolUrl = "https://pool.bytecoin.community";
         public const string RepoUrl = "https://github.com/bytecoinBCN-community/bcn-miner";
